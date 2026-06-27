@@ -105,4 +105,3 @@ Public domain.
 
 ---
 
-[![Edit with Shakespeare](https://shakespeare.diy/badge.svg)](https://shakespeare.diy/clone?url=https%3A%2F%2Fgithub.com%2FDenver-1st%2Fmprotocol)
