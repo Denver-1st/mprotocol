@@ -1,64 +1,103 @@
-# Whisper Relay
+# Whisper Relay WIPs
 
-A Nostr Implementation Possibility (NIP) for building WhatsApp-style instant messaging clients on Nostr.
+Whisper Relay is a Nostr-native protocol family for building WhatsApp-style instant messaging clients on Nostr.
 
-## Overview
+This repository is the canonical landing page for the Whisper Relay protocol and contains the `WIP` series: `Whisper Improvement Proposal` documents that define the protocol family.
 
-**NIP-WM** (Instant Messaging Enhancements for NIP-17) extends [NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md) (Private Direct Messages) with the real-time features expected of a modern messaging application — read receipts, delivery receipts, typing indicators, presence/last-seen, private group metadata, conversation settings, privacy preferences, and message editing.
+## Terminology Note
 
-It builds entirely on existing Nostr primitives — [NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md), [NIP-44](https://github.com/nostr-protocol/nips/blob/master/44.md), [NIP-59](https://github.com/nostr-protocol/nips/blob/master/59.md), and [NIP-65](https://github.com/nostr-protocol/nips/blob/master/65.md) — without redefining encryption, gift-wrapping, or relay selection.
+In this repository, `Client` refers to a Whisper Relay protocol implementation that sends, receives, and renders instant messages.
 
-## Features
+References to automation working on this repository are written explicitly as `AI agent`, `coding assistant`, or `repository automation` to avoid confusion with the protocol term.
 
-| Feature | Kind / Mechanism |
-|---|---|
-| Read receipts (blue checks) | Kind 1271 — gift-wrapped rumor |
-| Delivery receipts (grey checks) | Kind 7753 — gift-wrapped rumor |
-| Typing indicators | Kind 14 rumor + `typing` tag in ephemeral gift wrap (kind 21059) |
-| Online / Last seen | Kind 14569 — replaceable event |
-| Private group metadata | Kind 14 rumor + `group_*` tags |
-| Mute / pin / archive | Kind 33381 — addressable event |
-| Privacy preferences | Kind 35281 — addressable event |
-| Contacts list | Kind 36987 — addressable event |
-| Message editing | Kind 14 rumor + `edit` tag |
-| Disappearing messages | NIP-40 `expiration` tag (existing) |
-| Voice messages | Kind 1222 (NIP-A0, existing) |
-| File/image sharing | Kind 15 (NIP-17, existing) |
-| End-to-end encryption | Gift-wrapped kind 14 rumors (NIP-17/44/59, existing) |
+## WIP Series
 
-## Design Principles
+The WIPs are ordered by dependency and implementation priority. At this stage, the repository contains only the required WIPs for the minimum interoperable protocol core.
 
-1. **Privacy first** — all receipt, typing, and group-metadata events are rumors sealed and gift-wrapped per NIP-59. Relays and third parties cannot see who is reading what.
-2. **Reuse, don't duplicate** — no redefinition of encryption, gift-wrapping, or relay selection.
-3. **Opt-in granularity** — every feature can be independently toggled via privacy preferences.
-4. **Backwards compatible** — clients that don't implement this NIP simply ignore these event kinds. Core NIP-17 messaging continues to work.
+Read `WIP-00` through `WIP-08` first.
 
-## Event Kinds
+- [WIP-00-messaging-foundation.md](./WIP-00-messaging-foundation.md)
+  - Implementation: `Required`
+  - core messaging layer, encryption, gift-wrapping, and relay discovery
+- [WIP-01-read-receipts.md](./WIP-01-read-receipts.md)
+  - Implementation: `Required`
+  - gift-wrapped read receipt rumors for "blue checkmark" delivery
+- [WIP-02-delivery-receipts.md](./WIP-02-delivery-receipts.md)
+  - Implementation: `Required`
+  - gift-wrapped delivery receipt rumors for "grey checkmark" delivery
+- [WIP-03-typing-indicators.md](./WIP-03-typing-indicators.md)
+  - Implementation: `Required`
+  - ephemeral gift-wrapped typing indicators for real-time presence
+- [WIP-04-messaging-presence.md](./WIP-04-messaging-presence.md)
+  - Implementation: `Required`
+  - online, offline, last-seen, and custom availability status
+- [WIP-05-private-group-metadata.md](./WIP-05-private-group-metadata.md)
+  - Implementation: `Required`
+  - group creation, member management, name, picture, and description
+- [WIP-06-conversation-settings.md](./WIP-06-conversation-settings.md)
+  - Implementation: `Required`
+  - per-conversation mute, pin, archive, and wallpaper
+- [WIP-07-privacy-preferences.md](./WIP-07-privacy-preferences.md)
+  - Implementation: `Required`
+  - controls for who can see last-seen, receipts, typing, and profile photo
+- [WIP-08-contacts-list.md](./WIP-08-contacts-list.md)
+  - Implementation: `Required`
+  - messaging-native address book with petnames, separate from NIP-02 follows
 
-| Kind | Range | Name | Published as |
-|---|---|---|---|
-| 1271 | Regular | Read Receipt | Rumor inside gift wrap |
-| 7753 | Regular | Delivery Receipt | Rumor inside gift wrap |
-| 14569 | Replaceable | Messaging Presence | Signed public event |
-| 33381 | Addressable | Conversation Settings | Signed personal event |
-| 35281 | Addressable | Messaging Privacy Preferences | Signed personal event |
-| 36987 | Addressable | Messaging Contacts List | Signed personal event |
+## Design Direction
 
-## Protocol Document
+Whisper Relay is designed around a small set of protocol positions:
 
-The full protocol specification is in [`NIP.md`](./NIP.md).
+- Nostr pubkey is the canonical messaging identity
+- all message content is end-to-end encrypted via NIP-44 and gift-wrapped via NIP-59
+- receipts, typing indicators, and group metadata are rumors inside gift wraps — relays and third parties cannot see who is reading what
+- presence and personal preferences are signed public events about the user themselves, never about specific messages
+- every feature can be independently toggled via privacy preferences
+- clients that do not implement this protocol simply ignore these event kinds — core NIP-17 messaging continues to work
 
-## Depends On
+The practical inversion is:
 
-- [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md) — Basic protocol flow
-- [NIP-02](https://github.com/nostr-protocol/nips/blob/master/02.md) — Follow list (used for "contacts" definition)
-- [NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md) — Private direct messages
-- [NIP-40](https://github.com/nostr-protocol/nips/blob/master/40.md) — Expiration timestamp
-- [NIP-42](https://github.com/nostr-protocol/nips/blob/master/42.md) — Authentication to relays
-- [NIP-44](https://github.com/nostr-protocol/nips/blob/master/44.md) — Encrypted payloads
-- [NIP-51](https://github.com/nostr-protocol/nips/blob/master/51.md) — Lists (private items encryption pattern)
-- [NIP-59](https://github.com/nostr-protocol/nips/blob/master/59.md) — Gift wrap
-- [NIP-65](https://github.com/nostr-protocol/nips/blob/master/65.md) — Relay list metadata
+- from `application account owns message history`
+- to `Nostr identity owns message history, applications render it`
+
+## Implementation Baseline
+
+The first interoperable implementation baseline is:
+
+- [WIP-00-messaging-foundation.md](./WIP-00-messaging-foundation.md)
+- [WIP-01-read-receipts.md](./WIP-01-read-receipts.md)
+- [WIP-02-delivery-receipts.md](./WIP-02-delivery-receipts.md)
+- [WIP-03-typing-indicators.md](./WIP-03-typing-indicators.md)
+- [WIP-04-messaging-presence.md](./WIP-04-messaging-presence.md)
+- [WIP-05-private-group-metadata.md](./WIP-05-private-group-metadata.md)
+- [WIP-06-conversation-settings.md](./WIP-06-conversation-settings.md)
+- [WIP-07-privacy-preferences.md](./WIP-07-privacy-preferences.md)
+- [WIP-08-contacts-list.md](./WIP-08-contacts-list.md)
+
+These define the messaging core, receipt lifecycle, real-time presence, private group coordination, conversation management, privacy controls, and contacts model needed for a usable Whisper Relay-compatible implementation.
+
+## Contribution
+
+This repository is for protocol specification work, not application implementation.
+
+Changes in this repository should remain:
+
+- protocol-focused
+- atomic by component
+- free of implementation-repo details
+- free of application-specific database or migration logic
+
+When contributing:
+
+1. Read this `README` first.
+2. Read only the WIPs directly relevant to the requested change.
+3. Keep one WIP as the primary source of truth for each rule.
+4. Update related WIPs only where consistency requires it.
+5. Update this `README` when adding a new WIP.
+
+If a design is still unresolved, prefer documenting a draft convention or open question rather than implying false finality.
+
+The repository is intentionally small. Humans and agents should preserve that property by avoiding auxiliary process documents unless explicitly needed.
 
 ## License
 
